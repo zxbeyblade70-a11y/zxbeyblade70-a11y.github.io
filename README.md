@@ -46,4 +46,4 @@ Featuring a clean and stylish **glassmorphism UI** ✨
 
 ## 🌍 Live Demo (GitHub Pages)
 ```text
-https://username.github.io/mc-server-status-checker
+https://zxbeyblade70-a11y.github.io/
