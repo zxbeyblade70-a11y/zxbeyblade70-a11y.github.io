@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Server Status Checker</title>
+    <!-- Google Fonts: Kanit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-color: #ffffff;
+            --accent-glow: rgba(255, 255, 255, 0.4);
+            --success: #4ade80;
+            --error: #f87171;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Kanit', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            /* Background image can be customized here */
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1640903581708-8d491706515b?q=80&w=1375&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .checker-container {
+            width: 100%;
+            max-width: 500px;
+            animation: blurIn 0.8s ease-out;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: var(--accent-glow);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--glass-border);
+            padding: 14px 20px;
+            border-radius: 14px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: white;
+        }
+
+        .edition-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .edition-option {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .edition-option input {
+            display: none;
+        }
+
+        .edition-label {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            transition: all 0.3s ease;
+            font-weight: 300;
+        }
+
+        .edition-option input:checked + .edition-label {
+            background: white;
+            color: #0f172a;
+            font-weight: 500;
+            transform: translateY(-2px);
+        }
+
+        .check-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .check-btn:hover {
+            background: white;
+            color: #0f172a;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .check-btn:active {
+            transform: scale(0.98);
+        }
+
+        .example-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .example-btn {
+            font-size: 0.75rem;
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+
+        .example-btn:hover {
+            opacity: 1;
+            background: var(--glass-border);
+        }
+
+        /* Result Section */
+        #result {
+            margin-top: 30px;
+            display: none;
+            padding-top: 20px;
+            border-top: 1px solid var(--glass-border);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .server-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .server-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .info-label {
+            display: block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Loading */
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes blurIn {
+            from { filter: blur(20px); opacity: 0; transform: scale(0.9); }
+            to { filter: blur(0); opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 400px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .glass-card { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="checker-container">
+        <div class="glass-card">
+            <h1>Minecraft Status</h1>
+            
+            <div class="input-group">
+                <input type="text" id="serverIp" placeholder="ใส่ Server Address (IP)" spellcheck="false" autocomplete="off">
+            </div>
+
+            <div class="edition-selector">
+                <label class="edition-option">
+                    <input type="radio" name="edition" value="java" checked>
+                    <span class="edition-label">Java</span>
+                </label>
+                <label class="edition-option">
+                    <input type="radio" name="edition" value="bedrock">
+                    <span class="edition-label">Bedrock</span>
+                </label>
+            </div>
+
+            <button class="check-btn" onclick="checkServer()">Check Status</button>
+
+            <div class="example-container">
+                <button class="example-btn" onclick="quickCheck('hypixel.net', 'java')">Hypixel</button>
+                <button class="example-btn" onclick="quickCheck('play.cubecraft.net', 'java')">CubeCraft</button>
+                <button class="example-btn" onclick="quickCheck('play.nethergames.org', 'bedrock')">NetherGames</button>
+            </div>
+
+            <div class="loader" id="loader">
+                <div class="spinner"></div>
+                <p style="font-size: 0.8rem; margin-top: 8px;">กำลังตรวจสอบ...</p>
+            </div>
+
+            <!-- Result -->
+            <div id="result">
+                <div class="server-header">
+                    <img id="resIcon" class="server-icon" src="" alt="Icon">
+                    <div>
+                        <div id="resIp" style="font-size: 1.1rem; font-weight: 500;">-</div>
+                        <div id="statusBadge" class="status-badge">
+                            <span class="dot" id="statusDot"></span>
+                            <span id="statusText">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-card">
+                        <span class="info-label">Players</span>
+                        <span class="info-value" id="resPlayers">0 / 0</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">Version</span>
+                        <span class="info-value" id="resVersion">-</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">Platform</span>
+                        <span class="info-value" id="resPlatform">-</span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">Latency</span>
+                        <span class="info-value" id="resPing">Stable</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function checkServer() {
+            const ip = document.getElementById('serverIp').value.trim();
+            const edition = document.querySelector('input[name="edition"]:checked').value;
+            const loader = document.getElementById('loader');
+            const resultDiv = document.getElementById('result');
+
+            if (!ip) return;
+
+            // UI Reset
+            resultDiv.style.display = 'none';
+            loader.style.display = 'block';
+
+            try {
+                // Fetching from mcsrvstat.us API
+                const apiUrl = `https://api.mcsrvstat.us/${edition === 'bedrock' ? 'bedrock/' : ''}2/${ip}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.online) {
+                    renderResult(data, ip, edition, true);
+                } else {
+                    renderResult(data, ip, edition, false);
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                alert("ไม่สามารถติดต่อ API ได้ในขณะนี้");
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        function renderResult(data, ip, edition, isOnline) {
+            const resultDiv = document.getElementById('result');
+            const iconImg = document.getElementById('resIcon');
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+
+            // Set Icon
+            if (isOnline && data.icon) {
+                iconImg.src = data.icon;
+            } else {
+                iconImg.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${ip}`;
+            }
+
+            // Basic Info
+            document.getElementById('resIp').textContent = data.hostname || ip;
+            document.getElementById('resPlatform').textContent = edition.toUpperCase();
+
+            if (isOnline) {
+                statusDot.style.background = 'var(--success)';
+                statusText.textContent = 'Online';
+                statusText.style.color = 'var(--success)';
+                document.getElementById('resPlayers').textContent = `${data.players.online} / ${data.players.max}`;
+                document.getElementById('resVersion').textContent = data.version || 'Unknown';
+                document.getElementById('resPing').textContent = 'Connected';
+            } else {
+                statusDot.style.background = 'var(--error)';
+                statusText.textContent = 'Offline';
+                statusText.style.color = 'var(--error)';
+                document.getElementById('resPlayers').textContent = '-';
+                document.getElementById('resVersion').textContent = '-';
+                document.getElementById('resPing').textContent = 'Timed out';
+            }
+
+            resultDiv.style.display = 'block';
+        }
+
+        function quickCheck(ip, edition) {
+            document.getElementById('serverIp').value = ip;
+            document.querySelector(`input[name="edition"][value="${edition}"]`).checked = true;
+            checkServer();
+        }
+
+        // Handle Enter key
+        document.getElementById('serverIp').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkServer();
+        });
+    </script>
+</body>
+</html>
+
